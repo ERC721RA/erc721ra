@@ -1,4 +1,4 @@
-# ERC721RA - refundable and gas optimized NFT
+# ERC721RA (v1.0 Beta) - refundable and gas optimized NFT
 
 ![ERC721RA](https://raw.githubusercontent.com/rarilabs/ERC721RA/main/assets/erc721ra-small.png)
 
