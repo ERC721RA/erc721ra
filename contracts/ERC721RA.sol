@@ -169,13 +169,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC165, IERC165)
-        returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return
             interfaceId == type(IERC721).interfaceId ||
             interfaceId == type(IERC721Metadata).interfaceId ||
@@ -235,11 +229,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      * @dev Gas spent here starts off proportional to the maximum mint batch size.
      * It gradually moves to O(1) as tokens get transferred around in the collection over time.
      */
-    function _ownerOf(uint256 tokenId)
-        internal
-        view
-        returns (TokenData memory)
-    {
+    function _ownerOf(uint256 tokenId) internal view returns (TokenData memory) {
         uint32 curr = uint32(tokenId);
 
         // ====== Removed original unchecked clause below, to prevent over/underflow ====== //
@@ -288,20 +278,11 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
-    {
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         if (!_exists(tokenId)) revert QueryForTokenNotExist();
 
         string memory baseURI = _baseURI();
-        return
-            bytes(baseURI).length != 0
-                ? string(abi.encodePacked(baseURI, tokenId.toString()))
-                : "";
+        return bytes(baseURI).length != 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 
     /**
@@ -330,12 +311,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * @dev See {IERC721-getApproved}.
      */
-    function getApproved(uint256 tokenId)
-        public
-        view
-        override
-        returns (address)
-    {
+    function getApproved(uint256 tokenId) public view override returns (address) {
         if (!_exists(tokenId)) revert QueryForTokenNotExist();
 
         return _tokenApprovals[tokenId];
@@ -344,11 +320,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * @dev See {IERC721-setApprovalForAll}.
      */
-    function setApprovalForAll(address operator, bool approved)
-        public
-        virtual
-        override
-    {
+    function setApprovalForAll(address operator, bool approved) public virtual override {
         if (operator == _msgSender()) revert ApproveToCaller();
 
         _operatorApprovals[_msgSender()][operator] = approved;
@@ -358,13 +330,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * @dev See {IERC721-isApprovedForAll}.
      */
-    function isApprovedForAll(address owner, address operator)
-        public
-        view
-        virtual
-        override
-        returns (bool)
-    {
+    function isApprovedForAll(address owner, address operator) public view virtual override returns (bool) {
         return _operatorApprovals[owner][operator];
     }
 
@@ -400,10 +366,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         bytes memory _data
     ) public virtual override {
         _transfer(from, to, tokenId);
-        if (
-            to.isContract() &&
-            !_checkContractOnERC721Received(from, to, tokenId, _data)
-        ) {
+        if (to.isContract() && !_checkContractOnERC721Received(from, to, tokenId, _data)) {
             revert TransferToNonERC721ReceiverImplementer();
         }
     }
@@ -416,10 +379,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      * Tokens start existing when they are minted (`_mint`),
      */
     function _exists(uint256 tokenId) internal view returns (bool) {
-        return
-            _startTokenId() <= tokenId &&
-            tokenId < _currentIndex &&
-            !_tokenData[tokenId].burned;
+        return _startTokenId() <= tokenId && tokenId < _currentIndex && !_tokenData[tokenId].burned;
     }
 
     /**
@@ -461,20 +421,11 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         if (to.isContract()) {
             do {
                 _tokenData[updatedIndex].ownerAddress = to;
-                _tokenData[updatedIndex].startTimestamp = uint64(
-                    block.timestamp
-                );
+                _tokenData[updatedIndex].startTimestamp = uint64(block.timestamp);
                 _tokenData[updatedIndex].pricePaid = msg.value / amount;
 
                 emit Transfer(address(0), to, updatedIndex);
-                if (
-                    !_checkContractOnERC721Received(
-                        address(0),
-                        to,
-                        updatedIndex++,
-                        _data
-                    )
-                ) {
+                if (!_checkContractOnERC721Received(address(0), to, updatedIndex++, _data)) {
                     revert TransferToNonERC721ReceiverImplementer();
                 }
             } while (updatedIndex != end);
@@ -483,9 +434,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         } else {
             do {
                 _tokenData[updatedIndex].ownerAddress = to;
-                _tokenData[updatedIndex].startTimestamp = uint64(
-                    block.timestamp
-                );
+                _tokenData[updatedIndex].startTimestamp = uint64(block.timestamp);
                 _tokenData[updatedIndex].pricePaid = msg.value / amount;
 
                 emit Transfer(address(0), to, updatedIndex++);
@@ -552,8 +501,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     ) private {
         TokenData memory prevTokenData = _ownerOf(tokenId);
 
-        if (prevTokenData.ownerAddress != from)
-            revert TransferFromIncorrectOwner();
+        if (prevTokenData.ownerAddress != from) revert TransferFromIncorrectOwner();
 
         bool isApprovedOrOwner = (_msgSender() == from ||
             isApprovedForAll(from, _msgSender()) ||
@@ -688,14 +636,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         uint256 tokenId,
         bytes memory _data
     ) private returns (bool) {
-        try
-            IERC721Receiver(to).onERC721Received(
-                _msgSender(),
-                from,
-                tokenId,
-                _data
-            )
-        returns (bytes4 retval) {
+        try IERC721Receiver(to).onERC721Received(_msgSender(), from, tokenId, _data) returns (bytes4 retval) {
             return retval == IERC721Receiver(to).onERC721Received.selector;
         } catch (bytes memory reason) {
             if (reason.length == 0) {
