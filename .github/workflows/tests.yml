@@ -34,3 +34,5 @@ jobs:
       run: npm run lint:check
     - name: Run tests
       run: npm test
+    - name: Run tests with gas report
+      run: npm test:gas
