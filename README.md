@@ -58,7 +58,21 @@ contract Rari is ERC721RA {
 
 ```
 
+## Contributing
 
+Contributions are welcome.
+
+1. Fork the Project and clone the repository.
+2. Create a new branch. (`git checkout -b add-mint-function`)
+3. Coding and commit your Changes. (`git commit -m "Added Mint Function"`)
+4. Push your Changes to the Branch. (`git push -u origin add-mint-function`)
+5. Open a Pull Request.
+
+### Running tests locally
+
+1. `npm install`
+2. `npm run node`
+3. open another terminal and run `npm test`
 
 ## Contact
 
