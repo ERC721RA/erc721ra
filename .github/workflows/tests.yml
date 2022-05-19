@@ -2,7 +2,7 @@ name: ERC721RA CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ ** ]
     paths-ignore:
       - 'docs/**'
       - '**.md'
