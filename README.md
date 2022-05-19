@@ -70,7 +70,7 @@ Contributions are welcome.
 
 ### Running tests locally
 
-1. `npm install`
+1. `npm ci`
 2. `npm run node`
 3. open another terminal and run `npm test`
 
