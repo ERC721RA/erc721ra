@@ -31,7 +31,6 @@ module.exports = {
       },
     },
   },
-  defaultNetwork: "localhost",
   networks: {
     localhost: {},
     rinkeby: {
