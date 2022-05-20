@@ -64,10 +64,10 @@ describe("Test Inital States: ", function () {
       .mint(1, { value: parseEther(MINT_PRICE) });
 
     let receipt = await tx.wait();
-    let tokenId01 = receipt.logs[0].topics[3];
+    const tokenId01 = receipt.logs[0].topics[3];
 
     // Check price paid stored in contract
-    let pricePaid01 = await contract.pricePaid(tokenId01);
+    const pricePaid01 = await contract.pricePaid(tokenId01);
     let priceExpected = BigNumber.from(parseEther(MINT_PRICE));
     expect(pricePaid01).to.eq(priceExpected);
 
@@ -77,12 +77,12 @@ describe("Test Inital States: ", function () {
       .mint(9, { value: parseEther(MINT_PRICE) });
 
     receipt = await tx.wait();
-    let tokenId02 = receipt.logs[0].topics[3];
-    let tokenId03 = receipt.logs[1].topics[3]; //get tokenId from event logs
+    const tokenId02 = receipt.logs[0].topics[3];
+    const tokenId03 = receipt.logs[1].topics[3]; // get tokenId from event logs
 
     // Check price paid stored in contract
-    let pricePaid02 = await contract.pricePaid(tokenId02);
-    let pricePaid03 = await contract.pricePaid(tokenId03);
+    const pricePaid02 = await contract.pricePaid(tokenId02);
+    const pricePaid03 = await contract.pricePaid(tokenId03);
     priceExpected = BigNumber.from(parseEther(MINT_PRICE)).div(9);
     expect(pricePaid02).to.eq(priceExpected);
     expect(pricePaid03).to.eq(priceExpected);
@@ -97,7 +97,7 @@ describe("Test Refund: ", function () {
     await contract.deployed();
 
     let contractEthBal = await ethers.provider.getBalance(contract.address);
-    let acc02EthBal = await ethers.provider.getBalance(account02.address);
+    const acc02EthBal = await ethers.provider.getBalance(account02.address);
 
     // Mint a token from account02
     let tx = await contract
@@ -111,14 +111,14 @@ describe("Test Refund: ", function () {
 
     // Calculate gas used
     let receipt = await tx.wait();
-    let tokenId = receipt.logs[0].topics[3]; //get tokenId from event logs
+    const tokenId = receipt.logs[0].topics[3]; // get tokenId from event logs
     let gasUsed = receipt.cumulativeGasUsed;
     let gasPrice = receipt.effectiveGasPrice;
     let ethUsed = gasUsed.mul(gasPrice);
 
     // Check new ETH balance of account02 after mint
-    let newAcc02EthBal = await ethers.provider.getBalance(account02.address);
-    let diffBal = acc02EthBal.sub(parseEther(MINT_PRICE)).sub(ethUsed);
+    const newAcc02EthBal = await ethers.provider.getBalance(account02.address);
+    const diffBal = acc02EthBal.sub(parseEther(MINT_PRICE)).sub(ethUsed);
     expect(newAcc02EthBal).to.eq(diffBal);
 
     // Check token of return address and account02
@@ -129,7 +129,7 @@ describe("Test Refund: ", function () {
 
     // refund the token
     tx = await contract.connect(account02).refund(tokenId);
-    receipt = await tx.wait(); //get tokenId from event logs
+    receipt = await tx.wait(); // get tokenId from event logs
     gasUsed = receipt.cumulativeGasUsed;
     gasPrice = receipt.effectiveGasPrice;
     ethUsed = gasUsed.mul(gasPrice);
@@ -152,7 +152,7 @@ describe("Test Refund: ", function () {
     await contract.deployed();
 
     let contractEthBal = await ethers.provider.getBalance(contract.address);
-    let acc02EthBal = await ethers.provider.getBalance(account02.address);
+    const acc02EthBal = await ethers.provider.getBalance(account02.address);
 
     // Mint a token from account02
     let tx = await contract
@@ -165,9 +165,9 @@ describe("Test Refund: ", function () {
     expect(contractEthBal).to.eq(parseEther(MINT_PRICE));
 
     // Calculate gas used
-    let receipt = await tx.wait(); //get tokenId from event logs
-    let gasUsed = receipt.cumulativeGasUsed;
-    let gasPrice = receipt.effectiveGasPrice;
+    let receipt = await tx.wait(); // get tokenId from event logs
+    const gasUsed = receipt.cumulativeGasUsed;
+    const gasPrice = receipt.effectiveGasPrice;
     let ethUsed = gasUsed.mul(gasPrice);
 
     // console.log("Logs length: ", receipt.logs.length);
@@ -183,12 +183,9 @@ describe("Test Refund: ", function () {
     expect(ownerBal).to.eq(0);
     expect(bal02).to.eq(9);
 
-    let logs = receipt.logs;
-    let tokenid;
-
     // Batch return token
-    for (log of receipt.logs) {
-      tokenId = log.topics[3];
+    for (const log of receipt.logs) {
+      const tokenId = log.topics[3];
       tx = await contract.connect(account02).refund(tokenId);
       receipt = await tx.wait();
 
@@ -222,12 +219,12 @@ describe("Test Refund: ", function () {
     await contract.deployed();
 
     // Mint a token from account02 with zero price
-    let tx = await contract
+    const tx = await contract
       .connect(account02)
       .mint(1, { value: MINT_PRICE_ZERO });
 
-    let receipt = await tx.wait();
-    let tokenId = receipt.logs[0].topics[3]; //get tokenId from event logs
+    const receipt = await tx.wait();
+    const tokenId = receipt.logs[0].topics[3]; // get tokenId from event logs
 
     // Should be reverted with error
     await expect(
@@ -236,19 +233,19 @@ describe("Test Refund: ", function () {
   });
 
   it("Should not refund for inactive return state ...", async function () {
-    contract = await RA_NFT.deploy(REFUND_TIME_ZERO);
+    const contract = await RA_NFT.deploy(REFUND_TIME_ZERO);
     await contract.deployed();
 
     const isRefundActive = await contract.isRefundActive();
     expect(isRefundActive).to.eq(false);
 
     // Mint a token from account02
-    let tx = await contract
+    const tx = await contract
       .connect(account02)
       .mint(1, { value: parseEther(MINT_PRICE) });
 
-    let receipt = await tx.wait();
-    let tokenId = receipt.logs[0].topics[3]; //get tokenId from event logs
+    const receipt = await tx.wait();
+    const tokenId = receipt.logs[0].topics[3]; // get tokenId from event logs
 
     // Should be reverted with error
     await expect(
@@ -263,11 +260,11 @@ describe("Test Refund: ", function () {
     await contract.deployed();
 
     // Mint a token from account02
-    let tx = await contract
+    const tx = await contract
       .connect(account02)
       .mint(1, { value: parseEther(MINT_PRICE) });
-    let receipt = await tx.wait();
-    let tokenId = receipt.logs[0].topics[3]; //get tokenId from event logs
+    const receipt = await tx.wait();
+    const tokenId = receipt.logs[0].topics[3]; // get tokenId from event logs
 
     await contract
       .connect(account02)
@@ -276,8 +273,8 @@ describe("Test Refund: ", function () {
         account03.address,
         tokenId
       );
-    let bal02 = await contract.balanceOf(account02.address);
-    let bal03 = await contract.balanceOf(account03.address);
+    const bal02 = await contract.balanceOf(account02.address);
+    const bal03 = await contract.balanceOf(account03.address);
     expect(bal02).to.eq(0);
     expect(bal03).to.eq(1);
 
@@ -298,7 +295,7 @@ describe("Test Refund: ", function () {
       .connect(account02)
       .mint(1, { value: parseEther(MINT_PRICE) });
     let receipt = await tx.wait();
-    let tokenId = receipt.logs[0].topics[3]; //get tokenId from event logs
+    const tokenId = receipt.logs[0].topics[3]; // get tokenId from event logs
 
     // Transfer token from account 02 to 03
     await contract
@@ -316,13 +313,13 @@ describe("Test Refund: ", function () {
     expect(bal03).to.eq(1);
 
     // Check account03 ETH balance
-    let acc03EthBal = await ethers.provider.getBalance(account03.address);
+    const acc03EthBal = await ethers.provider.getBalance(account03.address);
 
     tx = await contract.connect(account03).refund(tokenId);
-    receipt = await tx.wait(); //get tokenId from event logs
-    let gasUsed = receipt.cumulativeGasUsed;
-    let gasPrice = receipt.effectiveGasPrice;
-    let ethUsed = gasUsed.mul(gasPrice);
+    receipt = await tx.wait(); // get tokenId from event logs
+    const gasUsed = receipt.cumulativeGasUsed;
+    const gasPrice = receipt.effectiveGasPrice;
+    const ethUsed = gasUsed.mul(gasPrice);
 
     // Check if account03 can return
     ownerBal = await contract.balanceOf(owner.address);
@@ -333,8 +330,8 @@ describe("Test Refund: ", function () {
     expect(bal03).to.eq(0);
 
     // Check if account03 receive the ETH
-    let diffBal = acc03EthBal.add(parseEther(MINT_PRICE)).sub(ethUsed);
-    let acc03NewBal = await ethers.provider.getBalance(account03.address);
+    const diffBal = acc03EthBal.add(parseEther(MINT_PRICE)).sub(ethUsed);
+    const acc03NewBal = await ethers.provider.getBalance(account03.address);
     expect(acc03NewBal).to.eq(diffBal);
   });
 
@@ -350,8 +347,8 @@ describe("Test Refund: ", function () {
       .mint(2, { value: parseEther(MINT_PRICE) });
 
     let receipt = await tx.wait();
-    let tokenId01 = receipt.logs[0].topics[3];
-    let tokenId02 = receipt.logs[1].topics[3]; //get tokenId from event logs
+    const tokenId01 = receipt.logs[0].topics[3];
+    const tokenId02 = receipt.logs[1].topics[3]; // get tokenId from event logs
 
     // Check the new token balance
     let ownerBal = await contract.balanceOf(owner.address);
@@ -386,11 +383,11 @@ describe("Test Refund: ", function () {
 
 describe("Test Withdraw: ", function () {
   it("Should not withdraw zero balance ...", async function () {
-    contract = await RA_NFT.deploy(REFUND_TIME_ZERO);
+    const contract = await RA_NFT.deploy(REFUND_TIME_ZERO);
     await contract.deployed();
 
     // Try to withdraw when zero balance
-    let contractBal = await ethers.provider.getBalance(contract.address);
+    const contractBal = await ethers.provider.getBalance(contract.address);
     expect(contractBal).to.eq(0);
     await expect(contract.connect(owner).withdraw()).to.be.revertedWith(
       "WithdrawZeroBalance()"
@@ -418,13 +415,13 @@ describe("Test Withdraw: ", function () {
   });
 
   it("Should withdraw when refund is not active ...", async function () {
-    contract = await RA_NFT.deploy(REFUND_TIME_ZERO);
+    const contract = await RA_NFT.deploy(REFUND_TIME_ZERO);
     await contract.deployed();
 
     const isRefundActive = await contract.isRefundActive();
     expect(isRefundActive).to.eq(false);
 
-    let ownerETHBal = await ethers.provider.getBalance(owner.address);
+    const ownerETHBal = await ethers.provider.getBalance(owner.address);
 
     // Mint one token
     await contract
@@ -436,18 +433,18 @@ describe("Test Withdraw: ", function () {
     expect(contractBal).to.eq(parseEther(MINT_PRICE));
 
     // Check the contract balance after withdraw
-    let tx = await contract.connect(owner).withdraw();
+    const tx = await contract.connect(owner).withdraw();
     contractBal = await ethers.provider.getBalance(contract.address);
     expect(contractBal).to.eq(0);
 
-    let receipt = await tx.wait();
-    let gasUsed = receipt.cumulativeGasUsed;
-    let gasPrice = receipt.effectiveGasPrice;
-    let ethUsed = gasUsed.mul(gasPrice);
+    const receipt = await tx.wait();
+    const gasUsed = receipt.cumulativeGasUsed;
+    const gasPrice = receipt.effectiveGasPrice;
+    const ethUsed = gasUsed.mul(gasPrice);
 
     // Check the owner ETH balance after the withdraw
-    let newOwnerETHBal = await ethers.provider.getBalance(owner.address);
-    let diffBal = ownerETHBal.sub(ethUsed).add(parseEther(MINT_PRICE));
+    const newOwnerETHBal = await ethers.provider.getBalance(owner.address);
+    const diffBal = ownerETHBal.sub(ethUsed).add(parseEther(MINT_PRICE));
     expect(diffBal).to.eq(newOwnerETHBal);
   });
 });

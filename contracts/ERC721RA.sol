@@ -9,7 +9,7 @@
  *  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
  *
  * SPDX-License-Identifier: MIT
- * Creator: Rari Labs  
+ * Creator: Rari Labs
  * Author: Will Qian
  * Version: ERC721RA Smart Contracts v1.0
  *
@@ -17,10 +17,10 @@
  * Twitter: twitter.com/ERC721RA
  * Github: github.com/ERC721RA
  *
- * ERC721RA is an improved implementation of ERC721A with refundability and gas optimization. 
- * The goal is to give NFT owners freedom to return the NFTs and get refund, 
+ * ERC721RA is an improved implementation of ERC721A with refundability and gas optimization.
+ * The goal is to give NFT owners freedom to return the NFTs and get refund,
  * and improve the credibility of the NFT creator.
- * 
+ *
  */
 pragma solidity >=0.8.4 <0.9.0;
 
@@ -66,7 +66,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     using Address for address;
     using Strings for uint256;
 
-    // Token data to track token 
+    // Token data to track token
     struct TokenData {
         // The address of the owner.
         address ownerAddress;
@@ -127,7 +127,11 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
-    constructor(string memory name_, string memory symbol_, uint256 refundEndTime_) {
+    constructor(
+        string memory name_,
+        string memory symbol_,
+        uint256 refundEndTime_
+    ) {
         _name = name_;
         _symbol = symbol_;
 
@@ -235,7 +239,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
                 if (tokenData.ownerAddress != address(0)) {
                     return tokenData;
                 }
-                
+
                 while (true) {
                     curr--;
                     tokenData = _tokenData[curr];
@@ -333,21 +337,34 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * @dev See {IERC721-transferFrom}.
      */
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override {
         _transfer(from, to, tokenId);
     }
 
     /**
      * @dev See {IERC721-safeTransferFrom}.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public virtual override {
         safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
      * @dev See {IERC721-safeTransferFrom}.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) public virtual override {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory _data
+    ) public virtual override {
         _transfer(from, to, tokenId);
         if (to.isContract() && !_checkContractOnERC721Received(from, to, tokenId, _data)) {
             revert TransferToNonERC721ReceiverImplementer();
@@ -377,13 +394,17 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      *
      * Requirements:
      *
-     * - If `to` refers to a smart contract, it must implement 
+     * - If `to` refers to a smart contract, it must implement
      *   {IERC721Receiver-onERC721Received}, which is called for each safe transfer.
      * - `amount` must be greater than 0.
      *
      * Emits a {Transfer} event.
      */
-    function _safeMint(address to, uint32 amount, bytes memory _data) internal {
+    function _safeMint(
+        address to,
+        uint32 amount,
+        bytes memory _data
+    ) internal {
         uint32 startTokenId = _currentIndex;
         if (to == address(0)) revert TransactToZeroAddress();
         if (amount == 0) revert MintZeroAmount();
@@ -473,7 +494,11 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      *
      * Emits a {Transfer} event.
      */
-    function _transfer(address from, address to, uint256 tokenId) private {
+    function _transfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) private {
         TokenData memory prevTokenData = _ownerOf(tokenId);
 
         if (prevTokenData.ownerAddress != from) revert TransferFromIncorrectOwner();
@@ -587,7 +612,11 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      *
      * emit a {Approval} event.
      */
-    function _approve(address to, uint256 tokenId, address owner) private {
+    function _approve(
+        address to,
+        uint256 tokenId,
+        address owner
+    ) private {
         _tokenApprovals[tokenId] = to;
         emit Approval(owner, to, tokenId);
     }
@@ -601,7 +630,12 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      * @param _data bytes optional data to send along with the call
      * @return bool whether the call correctly returned the expected magic value
      */
-    function _checkContractOnERC721Received(address from, address to, uint256 tokenId, bytes memory _data) private returns (bool) {
+    function _checkContractOnERC721Received(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory _data
+    ) private returns (bool) {
         try IERC721Receiver(to).onERC721Received(_msgSender(), from, tokenId, _data) returns (bytes4 retval) {
             return retval == IERC721Receiver(to).onERC721Received.selector;
         } catch (bytes memory reason) {
@@ -630,7 +664,12 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      * - When `to` is zero, `tokenId` will be burned by `from`.
      * - `from` and `to` are never both zero.
      */
-    function _beforeTokenTransfers(address from, address to, uint256 startTokenId, uint256 amount) internal virtual {}
+    function _beforeTokenTransfers(
+        address from,
+        address to,
+        uint256 startTokenId,
+        uint256 amount
+    ) internal virtual {}
 
     /**
      * @dev Hook that is called after a set of serially-ordered token ids have been transferred. This includes
@@ -648,7 +687,12 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      * - When `to` is zero, `tokenId` has been burned by `from`.
      * - `from` and `to` are never both zero.
      */
-    function _afterTokenTransfers(address from, address to, uint256 startTokenId, uint256 amount) internal virtual {}
+    function _afterTokenTransfers(
+        address from,
+        address to,
+        uint256 startTokenId,
+        uint256 amount
+    ) internal virtual {}
 
     /**
      * @dev Set the return address
@@ -658,7 +702,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     }
 
     /**
-     * @dev Get the return address 
+     * @dev Get the return address
      */
     function returnAddress() external view returns (address) {
         return _returnAddress;
@@ -702,13 +746,12 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
 
         safeTransferFrom(_msgSender(), _returnAddress, tokenId);
 
-        (bool success, ) = to.call{ value: refundAmount }("");
+        (bool success, ) = to.call{value: refundAmount}("");
         if (!success) revert RefundNotSucceed();
 
         emit Transfer(_msgSender(), _returnAddress, tokenId);
         _afterTokenTransfers(_msgSender(), _returnAddress, tokenId, 1);
     }
-
 
     /**
      * @dev Can only withdraw after when the refund is inactive
@@ -720,9 +763,8 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         uint256 contractBalance = address(this).balance;
         if (contractBalance == 0) revert WithdrawZeroBalance();
 
-        (bool success, ) = to.call{ value: contractBalance }("");
+        (bool success, ) = to.call{value: contractBalance}("");
 
         if (!success) revert WithdrawNotSucceed();
     }
-
 }
