@@ -89,7 +89,7 @@ describe("Test Inital States: ", function () {
   });
 });
 
-describe("Test Refund: ", function () {
+describe("Refund Test", function () {
   it("Should refund for one token ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
@@ -446,18 +446,5 @@ describe("Test Withdraw: ", function () {
     const newOwnerETHBal = await ethers.provider.getBalance(owner.address);
     const diffBal = ownerETHBal.sub(ethUsed).add(parseEther(MINT_PRICE));
     expect(diffBal).to.eq(newOwnerETHBal);
-  });
-});
-
-describe("Test Gas when REPORT_GAS is true: ", function () {
-  it("Mint Multiple ERC721RA ...", async function () {
-    const deployTimestamp = (await ethers.provider.getBlock("latest"))
-      .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
-    await contract.deployed();
-
-    await contract.connect(account02).mint(1);
-    await contract.connect(account02).mint(5);
-    await contract.connect(account02).mint(10);
   });
 });
