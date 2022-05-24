@@ -14,7 +14,7 @@ contract ERC721RA_NFT is ERC721RA {
         _safeMint(_msgSender(), amount);
     }
 
-    /*** For ease of Gas Saving Test ***/
+    /*** For the ease of Gas Saving Test ***/
     function mint1x() external payable {
         _safeMint(_msgSender(), 1);
     }
