@@ -1,13 +1,10 @@
-const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { BigNumber } = require("ethers");
 
 const parseEther = ethers.utils.parseEther;
 
 let RA_NFT, contract;
-let owner, account02, account03;
+let account02, account03;
 
-const REFUND_TIME = 60 * 60 * 24; // 1 day
 const MINT_PRICE = "0.1";
 
 beforeEach(async () => {
