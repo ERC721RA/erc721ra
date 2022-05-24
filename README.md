@@ -14,13 +14,6 @@ ERC721RA was initially created by Will Qian from Rari Labs for the NFT social 3.
 
 Rari Labs is not liable for any outcome of using ERC721RA
 
-## Gas Comparison ERC721RA vs ERC721
-
-The gas report is generated with Hardhat Gas Reporter. The minting performance is much more efficient and consistent.
-
-![gas-saving](https://raw.githubusercontent.com/rarilabs/ERC721RA/main/assets/gas-saving-small.png)
-
-
 ## Get Started
 
 Install Hardhat
