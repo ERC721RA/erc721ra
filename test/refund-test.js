@@ -89,7 +89,7 @@ describe("Test Inital States: ", function () {
   });
 });
 
-describe("Refund Test", function () {
+describe("REFUND_TEST", function () {
   it("Should refund for one token ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;

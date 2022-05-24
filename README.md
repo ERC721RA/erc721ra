@@ -95,7 +95,7 @@ REPORT_GAS=true
 - Run Gas Test cases only
 
 ```
-npx hardhat test --grep Gas
+npx hardhat test --grep GAS_TEST
 ```
 
 ## Contact

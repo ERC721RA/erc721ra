@@ -15,7 +15,7 @@ beforeEach(async () => {
   await contract.deployed();
 });
 
-describe("Gas Test", function () {
+describe("GAS_TEST", function () {
   it("Mint 1x ERC721RA ...", async function () {
     await contract.connect(owner).mint1x({ value: parseEther(MINT_PRICE) });
     await contract.connect(owner).mint1x({ value: parseEther(MINT_PRICE) });
