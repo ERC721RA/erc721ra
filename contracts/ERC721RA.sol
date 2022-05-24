@@ -72,13 +72,13 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         address ownerAddress;
         // Keeps track of the start time of tokenData with minimal overhead for tokenomics.
         uint64 startTimestamp;
-        // Track refund information of each token. Token can be returned even they're not owned by minter.
-        // Only allowed to refund once, Keeps track of the price paid by minter, price in Wei
-        uint256 pricePaid;
         // Whether the token has been burned.
         bool burned;
         // Whether token has been refunded
         bool refunded;
+        // Track refund information of each token. Token can be returned even they're not owned by minter.
+        // Only allowed to refund once, Keeps track of the price paid by minter, price in Wei
+        uint256 pricePaid;
     }
 
     // Owner data to track against token balance
@@ -103,7 +103,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     uint32 internal _refundCounter;
 
     // The refund end timestamp
-    uint64 private _refundEndTime;
+    uint64 private immutable _refundEndTime;
 
     // The return address to transfer token to
     address private _returnAddress;
