@@ -54,6 +54,7 @@ contract ERC721RA_NFT is ERC721RA {
     function mint10x() external payable {
         _safeMint(_msgSender(), 10);
     }
+
     /*** For ease of Gas Saving Test ***/
 
     function refund(uint256 tokenId) external {
