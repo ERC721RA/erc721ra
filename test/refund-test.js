@@ -36,7 +36,7 @@ beforeEach(async () => {
   RA_NFT = await ethers.getContractFactory("ERC721RA_NFT");
 });
 
-describe("Test Inital States: ", function () {
+describe("INITIAL_TEST", function () {
   it("Should store return data correctly ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
@@ -253,6 +253,27 @@ describe("REFUND_TEST", function () {
     ).to.be.revertedWith("RefundIsNotActive()");
   });
 
+  it("Should not refund same token more than once ...", async function () {
+    const deployTimestamp = (await ethers.provider.getBlock("latest"))
+      .timestamp;
+    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    await contract.deployed();
+
+    // Mint a token from account02
+    const tx = await contract
+      .connect(account02)
+      .mint(1, { value: parseEther(MINT_PRICE) });
+
+    const receipt = await tx.wait();
+    const tokenId = receipt.logs[0].topics[3]; // get tokenId from event logs
+
+    contract.connect(account02).refund(tokenId);
+    // Should be reverted with error
+    await expect(
+      contract.connect(account02).refund(tokenId)
+    ).to.be.revertedWith("RefundCallerNotOwner()");
+  });
+
   it("Should not refund token after you transfer to some one else ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
@@ -335,7 +356,7 @@ describe("REFUND_TEST", function () {
     expect(acc03NewBal).to.eq(diffBal);
   });
 
-  it("Should be able change the return address ...", async function () {
+  it("Should be able refund after changing return address ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
     const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
@@ -344,44 +365,82 @@ describe("REFUND_TEST", function () {
     // Mint 2 tokens from account02
     let tx = await contract
       .connect(account02)
-      .mint(2, { value: parseEther(MINT_PRICE) });
+      .mint(5, { value: parseEther(MINT_PRICE) });
 
     let receipt = await tx.wait();
-    const tokenId01 = receipt.logs[0].topics[3];
-    const tokenId02 = receipt.logs[1].topics[3]; // get tokenId from event logs
+    // const tokenId01 = receipt.logs[0].topics[3];
+    const tokenId02 = receipt.logs[1].topics[3];
+    const tokenId03 = receipt.logs[2].topics[3];
+    const tokenId04 = receipt.logs[3].topics[3];
+    // const tokenId05 = receipt.logs[4].topics[3]; // get tokenId from event logs
 
     // Check the new token balance
     let ownerBal = await contract.balanceOf(owner.address);
     let bal02 = await contract.balanceOf(account02.address);
     let bal03 = await contract.balanceOf(account03.address);
     expect(ownerBal).to.eq(0);
-    expect(bal02).to.eq(2);
+    expect(bal02).to.eq(5);
     expect(bal03).to.eq(0);
 
     // Return one token to the owner
-    tx = await contract.connect(account02).refund(tokenId01);
+    tx = await contract.connect(account02).refund(tokenId03); // Test in descending order
     receipt = await tx.wait();
     ownerBal = await contract.balanceOf(owner.address);
     bal02 = await contract.balanceOf(account02.address);
     bal03 = await contract.balanceOf(account03.address);
     expect(ownerBal).to.eq(1);
-    expect(bal02).to.eq(1);
+    expect(bal02).to.eq(4);
     expect(bal03).to.eq(0);
 
     // Change the return address to account03
     await contract.setReturnAddress(account03.address);
+    tx = await contract.connect(account02).refund(tokenId04);
+    receipt = await tx.wait();
+    ownerBal = await contract.balanceOf(owner.address);
+    bal02 = await contract.balanceOf(account02.address);
+    bal03 = await contract.balanceOf(account03.address);
+    expect(ownerBal).to.eq(1);
+    expect(bal02).to.eq(3);
+    expect(bal03).to.eq(1);
+
     tx = await contract.connect(account02).refund(tokenId02);
     receipt = await tx.wait();
     ownerBal = await contract.balanceOf(owner.address);
     bal02 = await contract.balanceOf(account02.address);
     bal03 = await contract.balanceOf(account03.address);
     expect(ownerBal).to.eq(1);
-    expect(bal02).to.eq(0);
-    expect(bal03).to.eq(1);
+    expect(bal02).to.eq(2);
+    expect(bal03).to.eq(2);
   });
 });
 
-describe("Test Withdraw: ", function () {
+describe("TOKEN_DATA_TEST", function () {
+  it("Check owner data for multiple mints ...", async function () {
+    const deployTimestamp = (await ethers.provider.getBlock("latest"))
+      .timestamp;
+    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    await contract.deployed();
+
+    // Mint a token from account02
+    const tx = await contract
+      .connect(account02)
+      .mint(9, { value: parseEther(String(0.9)) });
+
+    const receipt = await tx.wait();
+
+    // Check ownerOf() and pricePaid() behave correctly
+    for (const log of receipt.logs) {
+      const tokenId = log.topics[3];
+      const address = await contract.ownerOf(tokenId);
+      expect(address).to.eq(account02.address);
+
+      const price = await contract.pricePaid(tokenId);
+      expect(price).to.eq(parseEther("0.1"));
+    }
+  });
+});
+
+describe("WITHDRAW_TEST", function () {
   it("Should not withdraw zero balance ...", async function () {
     const contract = await RA_NFT.deploy(REFUND_TIME_ZERO);
     await contract.deployed();
