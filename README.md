@@ -72,11 +72,7 @@ npx hardhat compile --force
 
 ## Run Test
 
-- Run Hardhat node locally
-
-```
-npx hardhat node
-```
+- No need to run Hardhat node locally for testing
 
 - Run Hardhat test
 
