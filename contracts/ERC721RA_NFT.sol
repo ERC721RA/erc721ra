@@ -14,6 +14,48 @@ contract ERC721RA_NFT is ERC721RA {
         _safeMint(_msgSender(), amount);
     }
 
+    /*** For ease of Gas Saving Test ***/
+    function mint1x() external payable {
+        _safeMint(_msgSender(), 1);
+    }
+
+    function mint2x() external payable {
+        _safeMint(_msgSender(), 2);
+    }
+
+    function mint3x() external payable {
+        _safeMint(_msgSender(), 3);
+    }
+
+    function mint4x() external payable {
+        _safeMint(_msgSender(), 4);
+    }
+
+    function mint5x() external payable {
+        _safeMint(_msgSender(), 5);
+    }
+
+    function mint6x() external payable {
+        _safeMint(_msgSender(), 6);
+    }
+
+    function mint7x() external payable {
+        _safeMint(_msgSender(), 7);
+    }
+
+    function mint8x() external payable {
+        _safeMint(_msgSender(), 8);
+    }
+
+    function mint9x() external payable {
+        _safeMint(_msgSender(), 9);
+    }
+
+    function mint10x() external payable {
+        _safeMint(_msgSender(), 10);
+    }
+    /*** For ease of Gas Saving Test ***/
+
     function refund(uint256 tokenId) external {
         _refund(_msgSender(), tokenId);
     }

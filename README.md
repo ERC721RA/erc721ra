@@ -56,13 +56,21 @@ contract Rari is ERC721RA {
 
 ```
 
+## Compile
+
+- Hardhat compile
+
+```
+npx hardhat compile
+```
+
+- IMPORTANT: when you tweak Gas, sometimes you need to force compile
+
+```
+npx hardhat compile --force
+```
+
 ## Run Test
-
-- Turn on the performance test, in the .env file set the following
-
-```
-REPORT_GAS=true
-```
 
 - Run Hardhat node locally
 
@@ -76,7 +84,19 @@ npx hardhat node
 npx hardhat test
 ```
 
--
+**Test Gas**
+
+- Turn on the gas report, in the .env file set the following
+
+```
+REPORT_GAS=true
+```
+
+- Run Gas Test cases only
+
+```
+npx hardhat test --grep Gas
+```
 
 ## Contact
 
