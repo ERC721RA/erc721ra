@@ -10,7 +10,6 @@ The goal of this project is to encourage the adoption of ERC721RA NFT and improv
 
 For more information please visit [erc721ra.org](https://erc721ra.org). Follow us on twitter for [@ERC721RA](https://twitter.com/erc721ra) the latest updates. Join our [Github](https://github.com/erc721ra) project to collaborate.
 
-
 ERC721RA was initially created by Will Qian from Rari Labs for the NFT social 3.0 project.
 
 Rari Labs is not liable for any outcome of using ERC721RA
@@ -20,7 +19,6 @@ Rari Labs is not liable for any outcome of using ERC721RA
 The gas report is generated with Hardhat Gas Reporter. The minting performance is much more efficient and consistent.
 
 ![gas-saving](https://raw.githubusercontent.com/rarilabs/ERC721RA/main/assets/gas-saving-small.png)
-
 
 ## Get Started
 
@@ -58,21 +56,27 @@ contract Rari is ERC721RA {
 
 ```
 
-## Contributing
+## Run Test
 
-Contributions are welcome.
+- Turn on the performance test, in the .env file set the following
 
-1. Fork the Project and clone the repository.
-2. Create a new branch. (`git checkout -b add-mint-function`)
-3. Coding and commit your Changes. (`git commit -m "Added Mint Function"`)
-4. Push your Changes to the Branch. (`git push -u origin add-mint-function`)
-5. Open a Pull Request.
+```
+REPORT_GAS=true
+```
 
-### Running tests locally
+- Run Hardhat node locally
 
-1. `npm ci`
-2. `npm test`
-3. if you want to use another network, you can use: `npm test -- --network <network-name>`
+```
+npx hardhat node
+```
+
+- Run Hardhat test
+
+```
+npx hardhat test
+```
+
+-
 
 ## Contact
 
@@ -81,12 +85,10 @@ Contributions are welcome.
 - Lucky (Contributor) - [@millsonzhou](https://twitter.com/millsonzhou)
 - Joyce (Contributor) - [@joydefender](https://twitter.com/joydefender)
 
-
 **Join ERC721RA as a contributor: [Apply Now](https://forms.gle/32uiJ6d7e8McddaK6)**
-
 
 ## License
 
-Distribution under the MIT License. 
+Distribution under the MIT License.
 
 ![ERC721RA](https://raw.githubusercontent.com/rarilabs/ERC721RA/main/assets/erc721ra-banner.png)
