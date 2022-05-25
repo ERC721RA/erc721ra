@@ -40,17 +40,22 @@ error MintZeroAmount();
 error TransferCallerNotOwnerNorApproved();
 error TransferFromIncorrectOwner();
 error TransferToNonERC721ReceiverImplementer();
-error QueryForTokenNotExist();
-error RefundIsNotActive();
+error RefundNotActive();
 error RefundTokenHasBeenBurned();
 error RefundCallerNotOwner();
 error RefundHasAlreadyBeenMade();
 error RefundNotSucceed();
 error RefundZeroAmount();
-error WithdrawWhenRefundIsActive();
+error WithdrawWhenRefundActive();
 error WithdrawNotSucceed();
 error WithdrawZeroBalance();
-error TransactToZeroAddress();
+error WithdrawToZeroAddress();
+error TransferToZeroAddress();
+error MintToZeroAddress();
+error ReturnAddressSetToZeroAddress();
+error RefundToZeroAddress();
+error QueryTokenNotExist();
+error QueryZeroAddress();
 
 /**
  * @dev Implementation of https://eips.ethereum.org/EIPS/eip-721[ERC721] Non-Fungible Token Standard, including
@@ -72,6 +77,8 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         bool burned;
         // Whether token has been refunded
         bool refunded;
+        // Keeps track of the start time of ownership with minimal overhead for tokenomics.
+        uint64 startTimestamp;
         // The address of the owner.
         address ownerAddress;
         // Track refund information of each token. Token can be returned even they're not owned by minter.
@@ -89,6 +96,8 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         uint32 numberBurned;
         // Number of tokens refunded
         uint32 numberRefunded;
+        // To record extra information.
+        uint32 aux;
     }
 
     // The tokenId of the next token to be minted.
@@ -149,7 +158,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * @dev Burned tokens are calculated here, use _totalMinted() if you want to count just minted tokens.
      */
-    function totalSupply() external view returns (uint256) {
+    function totalSupply() public view returns (uint256) {
         // Impossible to underflow:
         // _burnCounter cannot be greater than _currentIndex - _startTokenId()
         unchecked {
@@ -182,6 +191,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      * @dev See {IERC721-balanceOf}.
      */
     function balanceOf(address owner) external view override returns (uint256) {
+        if (owner == address(0)) revert QueryZeroAddress();
         return _ownerData[owner].balance;
     }
 
@@ -228,6 +238,21 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     }
 
     /**
+     * Returns the auxillary data for `owner`. (e.g. number of whitelist mint slots used).
+     */
+    function _getAux(address owner) internal view returns (uint32) {
+        return _ownerData[owner].aux;
+    }
+
+    /**
+     * Sets the auxillary data for `owner`. (e.g. number of whitelist mint slots used).
+     * If there are multiple variables, please pack them into a uint32.
+     */
+    function _setAux(address owner, uint32 aux) internal {
+        _ownerData[owner].aux = aux;
+    }
+
+    /**
      * @dev Gas spent here starts off proportional to the maximum mint batch size.
      * It gradually moves to O(1) as tokens get transferred around in the collection over time.
      */
@@ -261,7 +286,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
             }
         }
 
-        revert QueryForTokenNotExist();
+        revert QueryTokenNotExist();
     }
 
     /**
@@ -289,7 +314,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      * @dev See {IERC721Metadata-tokenURI}.
      */
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        if (!_exists(tokenId)) revert QueryForTokenNotExist();
+        if (!_exists(tokenId)) revert QueryTokenNotExist();
 
         string memory baseURI = _baseURI();
         return bytes(baseURI).length != 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
@@ -322,7 +347,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      * @dev See {IERC721-getApproved}.
      */
     function getApproved(uint256 tokenId) public view override returns (address) {
-        if (!_exists(tokenId)) revert QueryForTokenNotExist();
+        if (!_exists(tokenId)) revert QueryTokenNotExist();
 
         return _tokenApprovals[tokenId];
     }
@@ -395,8 +420,8 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * Equivalent to `_safeMint(to, amount, '')`.
      */
-    function _safeMint(address to, uint256 amount) internal {
-        _safeMint(to, amount, "");
+    function _safeMint(address to, uint256 amount, uint256 pricePaid_) internal {
+        _safeMint(to, amount, pricePaid_, "");
     }
 
     /**
@@ -413,10 +438,11 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     function _safeMint(
         address to,
         uint256 amount,
+        uint256 pricePaid_,
         bytes memory _data
     ) internal {
         uint256 startTokenId = _currentIndex;
-        if (to == address(0)) revert TransactToZeroAddress();
+        if (to == address(0)) revert MintToZeroAddress();
         if (amount == 0) revert MintZeroAmount();
 
         _beforeTokenTransfers(address(0), to, startTokenId, amount);
@@ -433,7 +459,8 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
 
             // Underlying magic: doesn't explicitly set owner address for consecutive tokens when minting
             _tokenData[updatedIndex].ownerAddress = to;
-            _tokenData[updatedIndex].price = msg.value / amount;
+            _tokenData[startTokenId].startTimestamp = uint64(block.timestamp);
+            _tokenData[updatedIndex].price = pricePaid_;
 
             if (to.isContract()) {
                 do {
@@ -465,9 +492,9 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      *
      * Emits a {Transfer} event.
      */
-    function _mint(address to, uint256 amount) internal {
+    function _mint(address to, uint256 amount, uint256 pricePaid_) internal {
         uint256 startTokenId = _currentIndex;
-        if (to == address(0)) revert TransactToZeroAddress();
+        if (to == address(0)) revert MintToZeroAddress();
         if (amount == 0) revert MintZeroAmount();
 
         _beforeTokenTransfers(address(0), to, startTokenId, amount);
@@ -484,7 +511,8 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
 
             // Underlying magic: doesn't explicitly set owner address for consecutive tokens when minting
             _tokenData[updatedIndex].ownerAddress = to;
-            _tokenData[updatedIndex].price = msg.value / amount;
+            _tokenData[startTokenId].startTimestamp = uint64(block.timestamp);
+            _tokenData[updatedIndex].price = pricePaid_;
 
             do {
                 emit Transfer(address(0), to, updatedIndex++);
@@ -512,7 +540,6 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         uint256 tokenId
     ) private {
         TokenData memory prevTokenData = _ownerOf(tokenId);
-        uint256 priceByToken = pricePaid(tokenId);
 
         if (prevTokenData.ownerAddress != from) revert TransferFromIncorrectOwner();
 
@@ -521,7 +548,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
             getApproved(tokenId) == _msgSender());
 
         if (!isApprovedOrOwner) revert TransferCallerNotOwnerNorApproved();
-        if (to == address(0)) revert TransactToZeroAddress();
+        if (to == address(0)) revert TransferToZeroAddress();
 
         _beforeTokenTransfers(from, to, tokenId, 1);
 
@@ -538,7 +565,8 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
 
             // Must update price paid when transfer
             currSlot.ownerAddress = to;
-            currSlot.price = priceByToken;
+            currSlot.startTimestamp = uint64(block.timestamp);
+            currSlot.price = prevTokenData.price;
 
             // If the tokenData slot of tokenId+1 is not explicitly set, that means the transfer initiator owns it.
             // Set the slot of tokenId+1 explicitly in storage to maintain correctness for ownerOf(tokenId+1) calls.
@@ -551,7 +579,8 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
                 if (nextTokenId != _currentIndex) {
                     // Must update price paid for from address which owns the next token
                     nextSlot.ownerAddress = from;
-                    nextSlot.price = priceByToken;
+                    nextSlot.startTimestamp = prevTokenData.startTimestamp;
+                    nextSlot.price = prevTokenData.price;
                 }
             }
         }
@@ -605,6 +634,8 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
             // Keep track of who burned the token, and the timestamp of burning.
             TokenData storage currSlot = _tokenData[tokenId];
             currSlot.ownerAddress = from;
+            currSlot.startTimestamp = uint64(block.timestamp);
+            currSlot.price = prevTokenData.price;
             currSlot.burned = true;
 
             // If the tokenData slot of tokenId+1 is not explicitly set, that means the burn initiator owns it.
@@ -616,6 +647,8 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
                 // as a burned slot cannot contain the zero address.
                 if (nextTokenId != _currentIndex) {
                     nextSlot.ownerAddress = from;
+                    nextSlot.startTimestamp = prevTokenData.startTimestamp;
+                    nextSlot.price = prevTokenData.price;
                 }
             }
         }
@@ -719,6 +752,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      * @dev Set the return address
      */
     function setReturnAddress(address to) external onlyOwner {
+        if (to == address(0)) revert ReturnAddressSetToZeroAddress();
         _returnAddress = to;
     }
 
@@ -739,7 +773,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * @dev Check if refund has not ended
      */
-    function isRefundActive() public view returns (bool) {
+    function refundActive() public view returns (bool) {
         return _refundEndTime > block.timestamp;
     }
 
@@ -748,8 +782,8 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      * to - the refund payment is paid to
      */
     function _refund(address to, uint256 tokenId) internal {
-        if (!isRefundActive()) revert RefundIsNotActive();
-        if (to == address(0)) revert TransactToZeroAddress();
+        if (!refundActive()) revert RefundNotActive();
+        if (to == address(0)) revert RefundToZeroAddress();
 
         if (_msgSender() != ownerOf(tokenId)) revert RefundCallerNotOwner();
         if (_tokenData[tokenId].burned) revert RefundTokenHasBeenBurned();
@@ -769,6 +803,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
             _refundCounter++;
         }
 
+        // safeTransferFrom updates price and startTimestamp of new owner
         safeTransferFrom(_msgSender(), _returnAddress, tokenId);
 
         (bool success, ) = to.call{value: refundAmount}("");
@@ -781,9 +816,9 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * @dev Can only withdraw after when the refund is inactive
      */
-    function _withdraw(address to) internal onlyOwner {
-        if (isRefundActive()) revert WithdrawWhenRefundIsActive();
-        if (to == address(0)) revert TransactToZeroAddress();
+    function _withdraw(address to) internal virtual onlyOwner {
+        if (refundActive()) revert WithdrawWhenRefundActive();
+        if (to == address(0)) revert WithdrawToZeroAddress();
 
         uint256 contractBalance = address(this).balance;
         if (contractBalance == 0) revert WithdrawZeroBalance();
