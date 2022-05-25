@@ -5,8 +5,6 @@ const parseEther = ethers.utils.parseEther;
 let RA_NFT, contract;
 let owner;
 
-const MINT_PRICE = "0.01";
-
 beforeEach(async () => {
   [owner] = await ethers.getSigners();
 
