@@ -69,7 +69,14 @@ error QueryZeroAddress();
  *
  * Assumes that the maximum token id cannot exceed 2**32 - 1 (max value of uint32 4,294,967,296).
  */
-contract ERC721RAUpgradable is Initializable, ContextUpgradeable, ERC165Upgradeable, IERC721Upgradeable, IERC721MetadataUpgradeable, OwnableUpgradeable {
+contract ERC721RAUpgradable is
+    Initializable,
+    ContextUpgradeable,
+    ERC165Upgradeable,
+    IERC721Upgradeable,
+    IERC721MetadataUpgradeable,
+    OwnableUpgradeable
+{
     using AddressUpgradeable for address;
     using StringsUpgradeable for uint256;
 
@@ -140,7 +147,7 @@ contract ERC721RAUpgradable is Initializable, ContextUpgradeable, ERC165Upgradea
         string memory name_,
         string memory symbol_,
         uint256 refundEndTime_
-    )  internal onlyInitializing {
+    ) internal onlyInitializing {
         _name = name_;
         _symbol = symbol_;
         _currentIndex = _startTokenId();
@@ -181,7 +188,13 @@ contract ERC721RAUpgradable is Initializable, ContextUpgradeable, ERC165Upgradea
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC165Upgradeable, IERC165Upgradeable)
+        returns (bool)
+    {
         return
             interfaceId == type(IERC721Upgradeable).interfaceId ||
             interfaceId == type(IERC721MetadataUpgradeable).interfaceId ||
@@ -421,7 +434,11 @@ contract ERC721RAUpgradable is Initializable, ContextUpgradeable, ERC165Upgradea
     /**
      * Equivalent to `_safeMint(to, amount, '')`.
      */
-    function _safeMint(address to, uint256 amount, uint256 pricePaid_) internal {
+    function _safeMint(
+        address to,
+        uint256 amount,
+        uint256 pricePaid_
+    ) internal {
         _safeMint(to, amount, pricePaid_, "");
     }
 
@@ -438,7 +455,7 @@ contract ERC721RAUpgradable is Initializable, ContextUpgradeable, ERC165Upgradea
      */
     function _safeMint(
         address to,
-        uint256 amount, 
+        uint256 amount,
         uint256 pricePaid_,
         bytes memory _data
     ) internal {
@@ -493,7 +510,11 @@ contract ERC721RAUpgradable is Initializable, ContextUpgradeable, ERC165Upgradea
      *
      * Emits a {Transfer} event.
      */
-    function _mint(address to, uint256 amount, uint256 pricePaid_) internal {
+    function _mint(
+        address to,
+        uint256 amount,
+        uint256 pricePaid_
+    ) internal {
         uint256 startTokenId = _currentIndex;
         if (to == address(0)) revert MintToZeroAddress();
         if (amount == 0) revert MintZeroAmount();
@@ -691,7 +712,9 @@ contract ERC721RAUpgradable is Initializable, ContextUpgradeable, ERC165Upgradea
         uint256 tokenId,
         bytes memory _data
     ) private returns (bool) {
-        try IERC721ReceiverUpgradeable(to).onERC721Received(_msgSender(), from, tokenId, _data) returns (bytes4 retval) {
+        try IERC721ReceiverUpgradeable(to).onERC721Received(_msgSender(), from, tokenId, _data) returns (
+            bytes4 retval
+        ) {
             return retval == IERC721ReceiverUpgradeable(to).onERC721Received.selector;
         } catch (bytes memory reason) {
             if (reason.length == 0) {
@@ -748,7 +771,6 @@ contract ERC721RAUpgradable is Initializable, ContextUpgradeable, ERC165Upgradea
         uint256 startTokenId,
         uint256 amount
     ) internal virtual {}
-
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

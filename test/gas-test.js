@@ -47,50 +47,50 @@ describe("GAS_TEST", function () {
   });
 
   it("Mint 5x ERC721RA ...", async function () {
-    await contract.connect(owner).mint4x({ value: parseEther("0.05") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.05") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.05") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.05") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.05") });
+    await contract.connect(owner).mint5x({ value: parseEther("0.05") });
+    await contract.connect(owner).mint5x({ value: parseEther("0.05") });
+    await contract.connect(owner).mint5x({ value: parseEther("0.05") });
+    await contract.connect(owner).mint5x({ value: parseEther("0.05") });
+    await contract.connect(owner).mint5x({ value: parseEther("0.05") });
   });
 
   it("Mint 6x ERC721RA ...", async function () {
-    await contract.connect(owner).mint4x({ value: parseEther("0.06") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.06") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.06") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.06") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.06") });
+    await contract.connect(owner).mint6x({ value: parseEther("0.06") });
+    await contract.connect(owner).mint6x({ value: parseEther("0.06") });
+    await contract.connect(owner).mint6x({ value: parseEther("0.06") });
+    await contract.connect(owner).mint6x({ value: parseEther("0.06") });
+    await contract.connect(owner).mint6x({ value: parseEther("0.06") });
   });
 
   it("Mint 7x ERC721RA ...", async function () {
-    await contract.connect(owner).mint4x({ value: parseEther("0.07") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.07") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.07") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.07") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.07") });
+    await contract.connect(owner).mint7x({ value: parseEther("0.07") });
+    await contract.connect(owner).mint7x({ value: parseEther("0.07") });
+    await contract.connect(owner).mint7x({ value: parseEther("0.07") });
+    await contract.connect(owner).mint7x({ value: parseEther("0.07") });
+    await contract.connect(owner).mint7x({ value: parseEther("0.07") });
   });
 
   it("Mint 8x ERC721RA ...", async function () {
-    await contract.connect(owner).mint4x({ value: parseEther("0.08") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.08") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.08") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.08") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.08") });
+    await contract.connect(owner).mint8x({ value: parseEther("0.08") });
+    await contract.connect(owner).mint8x({ value: parseEther("0.08") });
+    await contract.connect(owner).mint8x({ value: parseEther("0.08") });
+    await contract.connect(owner).mint8x({ value: parseEther("0.08") });
+    await contract.connect(owner).mint8x({ value: parseEther("0.08") });
   });
 
   it("Mint 9x ERC721RA ...", async function () {
-    await contract.connect(owner).mint4x({ value: parseEther("0.09") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.09") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.09") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.09") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.09") });
+    await contract.connect(owner).mint9x({ value: parseEther("0.09") });
+    await contract.connect(owner).mint9x({ value: parseEther("0.09") });
+    await contract.connect(owner).mint9x({ value: parseEther("0.09") });
+    await contract.connect(owner).mint9x({ value: parseEther("0.09") });
+    await contract.connect(owner).mint9x({ value: parseEther("0.09") });
   });
 
   it("Mint 10x ERC721RA ...", async function () {
-    await contract.connect(owner).mint4x({ value: parseEther("0.10") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.10") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.10") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.10") });
-    await contract.connect(owner).mint4x({ value: parseEther("0.10") });
+    await contract.connect(owner).mint10x({ value: parseEther("0.10") });
+    await contract.connect(owner).mint10x({ value: parseEther("0.10") });
+    await contract.connect(owner).mint10x({ value: parseEther("0.10") });
+    await contract.connect(owner).mint10x({ value: parseEther("0.10") });
+    await contract.connect(owner).mint10x({ value: parseEther("0.10") });
   });
 });

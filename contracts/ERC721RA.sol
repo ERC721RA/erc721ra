@@ -420,7 +420,11 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * Equivalent to `_safeMint(to, amount, '')`.
      */
-    function _safeMint(address to, uint256 amount, uint256 pricePaid_) internal {
+    function _safeMint(
+        address to,
+        uint256 amount,
+        uint256 pricePaid_
+    ) internal {
         _safeMint(to, amount, pricePaid_, "");
     }
 
@@ -492,7 +496,11 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      *
      * Emits a {Transfer} event.
      */
-    function _mint(address to, uint256 amount, uint256 pricePaid_) internal {
+    function _mint(
+        address to,
+        uint256 amount,
+        uint256 pricePaid_
+    ) internal {
         uint256 startTokenId = _currentIndex;
         if (to == address(0)) revert MintToZeroAddress();
         if (amount == 0) revert MintZeroAmount();

@@ -11,7 +11,6 @@ import "hardhat/console.sol";
 error PaymentNotEnough();
 
 contract ERC721RA_NFT is ERC721RA {
-
     uint256 private _mintPrice;
     event RefundMade(address to, uint256 amount);
 
@@ -84,8 +83,8 @@ contract ERC721RA_NFT is ERC721RA {
     }
 
     /*
-    * Refund to minter
-    */
+     * Refund to minter
+     */
     function refundIfOver(uint256 totalPrice) private {
         if (msg.value < totalPrice) revert PaymentNotEnough();
         if (msg.value > totalPrice) {
