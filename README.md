@@ -10,11 +10,9 @@ The goal of this project is to encourage the adoption of ERC721RA NFT and improv
 
 For more information please visit [erc721ra.org](https://erc721ra.org). Follow us on twitter for [@ERC721RA](https://twitter.com/erc721ra) the latest updates. Join our [Github](https://github.com/erc721ra) project to collaborate.
 
-
 ERC721RA was initially created by Will Qian from Rari Labs for the NFT social 3.0 project.
 
 Rari Labs is not liable for any outcome of using ERC721RA
-
 
 ## Get Started
 
@@ -52,21 +50,43 @@ contract Rari is ERC721RA {
 
 ```
 
-## Contributing
+## Compile
 
-Contributions are welcome.
+- Hardhat compile
 
-1. Fork the Project and clone the repository.
-2. Create a new branch. (`git checkout -b add-mint-function`)
-3. Coding and commit your Changes. (`git commit -m "Added Mint Function"`)
-4. Push your Changes to the Branch. (`git push -u origin add-mint-function`)
-5. Open a Pull Request.
+```
+npx hardhat compile
+```
 
-### Running tests locally
+- IMPORTANT: when you tweak Gas, sometimes you need to force compile
 
-1. `npm ci`
-2. `npm test`
-3. if you want to use another network, you can use: `npm test -- --network <network-name>`
+```
+npx hardhat compile --force
+```
+
+## Run Test
+
+- No need to run Hardhat node locally for testing
+
+- Run Hardhat test
+
+```
+npx hardhat test
+```
+
+**Test Gas**
+
+- Turn on the gas report, in the .env file set the following
+
+```
+REPORT_GAS=true
+```
+
+- Run Gas Test cases only
+
+```
+npx hardhat test --grep GAS_TEST
+```
 
 ## Contact
 
@@ -74,9 +94,8 @@ Contributions are welcome.
 
 **Join ERC721RA as a contributor: [Apply Now](https://forms.gle/32uiJ6d7e8McddaK6)**
 
-
 ## License
 
-Distribution under the MIT License. 
+Distribution under the MIT License.
 
 ![ERC721RA](https://raw.githubusercontent.com/rarilabs/ERC721RA/main/assets/erc721ra-banner.png)
