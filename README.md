@@ -58,10 +58,12 @@ contract Rari is ERC721RA {
 npx hardhat compile
 ```
 
-- IMPORTANT: when you tweak Gas, sometimes you need to force compile
+- IMPORTANT: when you tweak Gas, sometimes you need to force compile or clean
 
 ```
 npx hardhat compile --force
+# or
+npx hardhat clean
 ```
 
 ## Run Test

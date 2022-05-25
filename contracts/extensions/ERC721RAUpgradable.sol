@@ -24,14 +24,15 @@
  */
 pragma solidity >=0.8.4 <0.9.0;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 error ApprovalCallerNotOwnerNorApproved();
 error ApproveToCaller();
@@ -49,6 +50,7 @@ error RefundZeroAmount();
 error WithdrawWhenRefundActive();
 error WithdrawNotSucceed();
 error WithdrawZeroBalance();
+error TransactToZeroAddress();
 error WithdrawToZeroAddress();
 error TransferToZeroAddress();
 error MintToZeroAddress();
@@ -67,9 +69,16 @@ error QueryZeroAddress();
  *
  * Assumes that the maximum token id cannot exceed 2**32 - 1 (max value of uint32 4,294,967,296).
  */
-contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
-    using Address for address;
-    using Strings for uint256;
+contract ERC721RAUpgradable is
+    Initializable,
+    ContextUpgradeable,
+    ERC165Upgradeable,
+    IERC721Upgradeable,
+    IERC721MetadataUpgradeable,
+    OwnableUpgradeable
+{
+    using AddressUpgradeable for address;
+    using StringsUpgradeable for uint256;
 
     // Token data to track token
     struct TokenData {
@@ -110,7 +119,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     uint256 internal _refundCounter;
 
     // The refund end timestamp
-    uint256 private immutable _refundEndTime;
+    uint256 private _refundEndTime;
 
     // The return address to transfer token to
     address private _returnAddress;
@@ -134,18 +143,17 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
-    constructor(
+    function __ERC721RA_init(
         string memory name_,
         string memory symbol_,
         uint256 refundEndTime_
-    ) {
+    ) internal onlyInitializing {
         _name = name_;
         _symbol = symbol_;
+        _currentIndex = _startTokenId();
 
         _refundEndTime = refundEndTime_;
         _returnAddress = _msgSender();
-
-        _currentIndex = _startTokenId();
     }
 
     /**
@@ -180,10 +188,16 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC165Upgradeable, IERC165Upgradeable)
+        returns (bool)
+    {
         return
-            interfaceId == type(IERC721).interfaceId ||
-            interfaceId == type(IERC721Metadata).interfaceId ||
+            interfaceId == type(IERC721Upgradeable).interfaceId ||
+            interfaceId == type(IERC721MetadataUpgradeable).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
@@ -333,7 +347,7 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
      * @dev See {IERC721-approve}.
      */
     function approve(address to, uint256 tokenId) external override {
-        address owner = ERC721RA.ownerOf(tokenId);
+        address owner = ERC721RAUpgradable.ownerOf(tokenId);
         if (to == owner) revert ApprovalToCurrentOwner();
 
         if (_msgSender() != owner && !isApprovedForAll(owner, _msgSender())) {
@@ -698,8 +712,10 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         uint256 tokenId,
         bytes memory _data
     ) private returns (bool) {
-        try IERC721Receiver(to).onERC721Received(_msgSender(), from, tokenId, _data) returns (bytes4 retval) {
-            return retval == IERC721Receiver(to).onERC721Received.selector;
+        try IERC721ReceiverUpgradeable(to).onERC721Received(_msgSender(), from, tokenId, _data) returns (
+            bytes4 retval
+        ) {
+            return retval == IERC721ReceiverUpgradeable(to).onERC721Received.selector;
         } catch (bytes memory reason) {
             if (reason.length == 0) {
                 revert TransferToNonERC721ReceiverImplementer();
@@ -755,6 +771,13 @@ contract ERC721RA is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         uint256 startTokenId,
         uint256 amount
     ) internal virtual {}
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[42] private __gap;
 
     /**
      * @dev Set the return address

@@ -7,11 +7,7 @@ const parseEther = ethers.utils.parseEther;
 let RA_NFT;
 let owner, account02, account03;
 
-const REFUND_TIME_ZERO = 0;
 const REFUND_TIME = 60 * 60 * 24; // 1 day
-
-const MINT_PRICE_ZERO = 0;
-const MINT_PRICE = "0.1";
 
 beforeEach(async () => {
   [owner, account02, account03] = await ethers.getSigners();
@@ -40,41 +36,44 @@ describe("INITIAL_TEST", function () {
   it("Should store return data correctly ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp, 0);
     await contract.deployed();
 
     const refundEndtime = await contract.refundEndTime();
-    const isRefundActive = await contract.isRefundActive();
+    const refundActive = await contract.refundActive();
     const returnAddress = await contract.returnAddress();
 
     expect(refundEndtime).to.eq(REFUND_TIME + deployTimestamp);
-    expect(isRefundActive).to.eq(true);
+    expect(refundActive).to.eq(true);
     expect(returnAddress).to.eq(owner.address);
   });
 
   it("Should store correct price, when mint multiple token ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    const contract = await RA_NFT.deploy(
+      REFUND_TIME + deployTimestamp,
+      parseEther("0.01")
+    );
     await contract.deployed();
 
     // Mint a token from account02
     let tx = await contract
       .connect(account02)
-      .mint(1, { value: parseEther(MINT_PRICE) });
+      .mint(1, { value: parseEther("0.01") });
 
     let receipt = await tx.wait();
     const tokenId01 = receipt.logs[0].topics[3];
 
     // Check price paid stored in contract
     const pricePaid01 = await contract.pricePaid(tokenId01);
-    let priceExpected = BigNumber.from(parseEther(MINT_PRICE));
+    let priceExpected = BigNumber.from(parseEther("0.01"));
     expect(pricePaid01).to.eq(priceExpected);
 
     // Mint 9 tokens from account02
     tx = await contract
       .connect(account02)
-      .mint(9, { value: parseEther(MINT_PRICE) });
+      .mint(9, { value: parseEther("0.09") });
 
     receipt = await tx.wait();
     const tokenId02 = receipt.logs[0].topics[3];
@@ -83,7 +82,7 @@ describe("INITIAL_TEST", function () {
     // Check price paid stored in contract
     const pricePaid02 = await contract.pricePaid(tokenId02);
     const pricePaid03 = await contract.pricePaid(tokenId03);
-    priceExpected = BigNumber.from(parseEther(MINT_PRICE)).div(9);
+    priceExpected = BigNumber.from(parseEther("0.01"));
     expect(pricePaid02).to.eq(priceExpected);
     expect(pricePaid03).to.eq(priceExpected);
   });
@@ -93,7 +92,10 @@ describe("REFUND_TEST", function () {
   it("Should refund for one token ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    const contract = await RA_NFT.deploy(
+      REFUND_TIME + deployTimestamp,
+      parseEther("0.01")
+    );
     await contract.deployed();
 
     let contractEthBal = await ethers.provider.getBalance(contract.address);
@@ -102,12 +104,12 @@ describe("REFUND_TEST", function () {
     // Mint a token from account02
     let tx = await contract
       .connect(account02)
-      .mint(1, { value: parseEther(MINT_PRICE) });
+      .mint(1, { value: parseEther("0.01") });
 
     // Check contract balance aftermint
     expect(contractEthBal).to.eq(0);
     contractEthBal = await ethers.provider.getBalance(contract.address);
-    expect(contractEthBal).to.eq(parseEther(MINT_PRICE));
+    expect(contractEthBal).to.eq(parseEther("0.01"));
 
     // Calculate gas used
     let receipt = await tx.wait();
@@ -118,7 +120,7 @@ describe("REFUND_TEST", function () {
 
     // Check new ETH balance of account02 after mint
     const newAcc02EthBal = await ethers.provider.getBalance(account02.address);
-    const diffBal = acc02EthBal.sub(parseEther(MINT_PRICE)).sub(ethUsed);
+    const diffBal = acc02EthBal.sub(parseEther("0.01")).sub(ethUsed);
     expect(newAcc02EthBal).to.eq(diffBal);
 
     // Check token of return address and account02
@@ -148,7 +150,10 @@ describe("REFUND_TEST", function () {
   it("Should refund for multiple mints ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    const contract = await RA_NFT.deploy(
+      REFUND_TIME + deployTimestamp,
+      parseEther("0.01")
+    );
     await contract.deployed();
 
     let contractEthBal = await ethers.provider.getBalance(contract.address);
@@ -157,12 +162,12 @@ describe("REFUND_TEST", function () {
     // Mint a token from account02
     let tx = await contract
       .connect(account02)
-      .mint(9, { value: parseEther(MINT_PRICE) });
+      .mint(9, { value: parseEther("0.09") });
 
     // Check contract balance aftermint
     expect(contractEthBal).to.eq(0);
     contractEthBal = await ethers.provider.getBalance(contract.address);
-    expect(contractEthBal).to.eq(parseEther(MINT_PRICE));
+    expect(contractEthBal).to.eq(parseEther("0.09"));
 
     // Calculate gas used
     let receipt = await tx.wait(); // get tokenId from event logs
@@ -174,7 +179,7 @@ describe("REFUND_TEST", function () {
 
     // Check new ETH balance of account02 after mint
     let newAcc02EthBal = await ethers.provider.getBalance(account02.address);
-    let diffBal = acc02EthBal.sub(parseEther(MINT_PRICE)).sub(ethUsed);
+    let diffBal = acc02EthBal.sub(parseEther("0.09")).sub(ethUsed);
     expect(newAcc02EthBal).to.eq(diffBal);
 
     // Check token of return address and account02
@@ -204,7 +209,7 @@ describe("REFUND_TEST", function () {
 
     // Check the contract ETH balance again, should be less than per token price
     contractEthBal = await ethers.provider.getBalance(contract.address);
-    expect(contractEthBal).to.lt(parseEther(MINT_PRICE).div(9)); // does not always equal to 0
+    expect(contractEthBal).to.lt(parseEther("0.01")); // does not always equal to 0
 
     // Account balance should be original balance sub ETH used
     newAcc02EthBal = await ethers.provider.getBalance(account02.address);
@@ -212,16 +217,42 @@ describe("REFUND_TEST", function () {
     expect(diffBal).to.eq(newAcc02EthBal);
   });
 
-  it("Should not refund for zero price ...", async function () {
+  // check price paid is recorded correctly, if during minting call refundIfOver()
+  it("Should set price paid correctly if over pay during minting ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    const contract = await RA_NFT.deploy(
+      REFUND_TIME + deployTimestamp,
+      parseEther("0.01")
+    );
     await contract.deployed();
 
     // Mint a token from account02 with zero price
     const tx = await contract
       .connect(account02)
-      .mint(1, { value: MINT_PRICE_ZERO });
+      .mint(2, { value: parseEther("0.04") });
+
+    const receipt = await tx.wait();
+    // as there is a refundIfOver() tx log before safeMint()
+    const tokenId = receipt.logs[2].topics[3]; // get tokenId from event logs
+
+    // Expect refund if over
+    const contractBal = await ethers.provider.getBalance(contract.address);
+    expect(contractBal).to.eq(parseEther("0.02"));
+
+    await contract.connect(account02).refund(tokenId);
+    const pricePaid = await contract.pricePaid(tokenId);
+    expect(pricePaid).to.eq(parseEther("0.01"));
+  });
+
+  it("Should not refund for zero price ...", async function () {
+    const deployTimestamp = (await ethers.provider.getBlock("latest"))
+      .timestamp;
+    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp, 0);
+    await contract.deployed();
+
+    // Mint a token from account02 with zero price
+    const tx = await contract.connect(account02).mint(1, { value: 0 });
 
     const receipt = await tx.wait();
     const tokenId = receipt.logs[0].topics[3]; // get tokenId from event logs
@@ -233,16 +264,16 @@ describe("REFUND_TEST", function () {
   });
 
   it("Should not refund for inactive return state ...", async function () {
-    const contract = await RA_NFT.deploy(REFUND_TIME_ZERO);
+    const contract = await RA_NFT.deploy(0, parseEther("0.01"));
     await contract.deployed();
 
-    const isRefundActive = await contract.isRefundActive();
-    expect(isRefundActive).to.eq(false);
+    const refundActive = await contract.refundActive();
+    expect(refundActive).to.eq(false);
 
     // Mint a token from account02
     const tx = await contract
       .connect(account02)
-      .mint(1, { value: parseEther(MINT_PRICE) });
+      .mint(1, { value: parseEther("0.01") });
 
     const receipt = await tx.wait();
     const tokenId = receipt.logs[0].topics[3]; // get tokenId from event logs
@@ -250,24 +281,27 @@ describe("REFUND_TEST", function () {
     // Should be reverted with error
     await expect(
       contract.connect(account02).refund(tokenId)
-    ).to.be.revertedWith("RefundIsNotActive()");
+    ).to.be.revertedWith("RefundNotActive()");
   });
 
   it("Should not refund same token more than once ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    const contract = await RA_NFT.deploy(
+      REFUND_TIME + deployTimestamp,
+      parseEther("0.01")
+    );
     await contract.deployed();
 
     // Mint a token from account02
     const tx = await contract
       .connect(account02)
-      .mint(1, { value: parseEther(MINT_PRICE) });
+      .mint(1, { value: parseEther("0.01") });
 
     const receipt = await tx.wait();
     const tokenId = receipt.logs[0].topics[3]; // get tokenId from event logs
 
-    contract.connect(account02).refund(tokenId);
+    await contract.connect(account02).refund(tokenId);
     // Should be reverted with error
     await expect(
       contract.connect(account02).refund(tokenId)
@@ -277,13 +311,16 @@ describe("REFUND_TEST", function () {
   it("Should not refund token after you transfer to some one else ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    const contract = await RA_NFT.deploy(
+      REFUND_TIME + deployTimestamp,
+      parseEther("0.01")
+    );
     await contract.deployed();
 
     // Mint a token from account02
     const tx = await contract
       .connect(account02)
-      .mint(1, { value: parseEther(MINT_PRICE) });
+      .mint(1, { value: parseEther("0.01") });
     const receipt = await tx.wait();
     const tokenId = receipt.logs[0].topics[3]; // get tokenId from event logs
 
@@ -308,13 +345,16 @@ describe("REFUND_TEST", function () {
   it("Should refund if acquired from the secondary sale ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    const contract = await RA_NFT.deploy(
+      REFUND_TIME + deployTimestamp,
+      parseEther("0.01")
+    );
     await contract.deployed();
 
     // Mint a token from account02
     let tx = await contract
       .connect(account02)
-      .mint(1, { value: parseEther(MINT_PRICE) });
+      .mint(1, { value: parseEther("0.01") });
     let receipt = await tx.wait();
     const tokenId = receipt.logs[0].topics[3]; // get tokenId from event logs
 
@@ -351,7 +391,7 @@ describe("REFUND_TEST", function () {
     expect(bal03).to.eq(0);
 
     // Check if account03 receive the ETH
-    const diffBal = acc03EthBal.add(parseEther(MINT_PRICE)).sub(ethUsed);
+    const diffBal = acc03EthBal.add(parseEther("0.01")).sub(ethUsed);
     const acc03NewBal = await ethers.provider.getBalance(account03.address);
     expect(acc03NewBal).to.eq(diffBal);
   });
@@ -359,13 +399,16 @@ describe("REFUND_TEST", function () {
   it("Should be able refund after changing return address ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    const contract = await RA_NFT.deploy(
+      REFUND_TIME + deployTimestamp,
+      parseEther("0.01")
+    );
     await contract.deployed();
 
     // Mint 2 tokens from account02
     let tx = await contract
       .connect(account02)
-      .mint(5, { value: parseEther(MINT_PRICE) });
+      .mint(5, { value: parseEther("0.05") });
 
     let receipt = await tx.wait();
     // const tokenId01 = receipt.logs[0].topics[3];
@@ -418,13 +461,16 @@ describe("TOKEN_DATA_TEST", function () {
   it("Check owner data for multiple mints ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    const contract = await RA_NFT.deploy(
+      REFUND_TIME + deployTimestamp,
+      parseEther("0.01")
+    );
     await contract.deployed();
 
     // Mint a token from account02
     const tx = await contract
       .connect(account02)
-      .mint(9, { value: parseEther(String(0.9)) });
+      .mint(9, { value: parseEther("0.09") });
 
     const receipt = await tx.wait();
 
@@ -435,14 +481,14 @@ describe("TOKEN_DATA_TEST", function () {
       expect(address).to.eq(account02.address);
 
       const price = await contract.pricePaid(tokenId);
-      expect(price).to.eq(parseEther("0.1"));
+      expect(price).to.eq(parseEther("0.01"));
     }
   });
 });
 
 describe("WITHDRAW_TEST", function () {
   it("Should not withdraw zero balance ...", async function () {
-    const contract = await RA_NFT.deploy(REFUND_TIME_ZERO);
+    const contract = await RA_NFT.deploy(0, 0);
     await contract.deployed();
 
     // Try to withdraw when zero balance
@@ -456,40 +502,39 @@ describe("WITHDRAW_TEST", function () {
   it("Should not withdraw when refund is active ...", async function () {
     const deployTimestamp = (await ethers.provider.getBlock("latest"))
       .timestamp;
-    const contract = await RA_NFT.deploy(REFUND_TIME + deployTimestamp);
+    const contract = await RA_NFT.deploy(
+      REFUND_TIME + deployTimestamp,
+      parseEther("0.01")
+    );
     await contract.deployed();
 
-    const isRefundActive = await contract.isRefundActive();
-    expect(isRefundActive).to.eq(true);
+    const refundActive = await contract.refundActive();
+    expect(refundActive).to.eq(true);
 
     // Mint one token
-    await contract
-      .connect(account02)
-      .mint(1, { value: parseEther(MINT_PRICE) });
+    await contract.connect(account02).mint(1, { value: parseEther("0.01") });
 
     // Try to withdraw when the sale is not active
     await expect(contract.connect(owner).withdraw()).to.be.revertedWith(
-      "WithdrawWhenRefundIsActive()"
+      "WithdrawWhenRefundActive()"
     );
   });
 
   it("Should withdraw when refund is not active ...", async function () {
-    const contract = await RA_NFT.deploy(REFUND_TIME_ZERO);
+    const contract = await RA_NFT.deploy(0, parseEther("0.01"));
     await contract.deployed();
 
-    const isRefundActive = await contract.isRefundActive();
-    expect(isRefundActive).to.eq(false);
+    const refundActive = await contract.refundActive();
+    expect(refundActive).to.eq(false);
 
     const ownerETHBal = await ethers.provider.getBalance(owner.address);
 
     // Mint one token
-    await contract
-      .connect(account02)
-      .mint(1, { value: parseEther(MINT_PRICE) });
+    await contract.connect(account02).mint(1, { value: parseEther("0.01") });
 
     // Check the contract balance
     let contractBal = await ethers.provider.getBalance(contract.address);
-    expect(contractBal).to.eq(parseEther(MINT_PRICE));
+    expect(contractBal).to.eq(parseEther("0.01"));
 
     // Check the contract balance after withdraw
     const tx = await contract.connect(owner).withdraw();
@@ -503,7 +548,7 @@ describe("WITHDRAW_TEST", function () {
 
     // Check the owner ETH balance after the withdraw
     const newOwnerETHBal = await ethers.provider.getBalance(owner.address);
-    const diffBal = ownerETHBal.sub(ethUsed).add(parseEther(MINT_PRICE));
+    const diffBal = ownerETHBal.sub(ethUsed).add(parseEther("0.01"));
     expect(diffBal).to.eq(newOwnerETHBal);
   });
 });
