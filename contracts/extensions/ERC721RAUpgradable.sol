@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: MIT
  * Creator: Rari Labs
- * Author: Will Qian
+ * Author: WIL ZEE
  * Version: ERC721RA Smart Contracts v1.0
  *
  * Website: erc721ra.org
