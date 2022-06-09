@@ -1,7 +1,7 @@
 /***
  * SPDX-License-Identifier: MIT
  * Creator: Rari Labs
- * Author: Will Qian
+ * Author: WIL ZEE
  */
 pragma solidity ^0.8.7;
 
