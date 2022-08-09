@@ -32,7 +32,6 @@ import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 error ApprovalCallerNotOwnerNorApproved();
 error ApproveToCaller();
@@ -48,7 +47,7 @@ error RefundHasAlreadyBeenMade();
 error RefundNotSucceed();
 error RefundZeroAmount();
 error WithdrawWhenRefundActive();
-error WithdrawNotSucceed();
+// error WithdrawNotSucceed();
 error WithdrawZeroBalance();
 error TransactToZeroAddress();
 error WithdrawToZeroAddress();
@@ -142,6 +141,8 @@ contract ERC721RAUpgradable is
 
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
+
+    event WithdrawSucceed(address to, uint256 amount);
 
     function __ERC721RA_init(
         string memory name_,
@@ -270,7 +271,11 @@ contract ERC721RAUpgradable is
      * @dev Gas spent here starts off proportional to the maximum mint batch size.
      * It gradually moves to O(1) as tokens get transferred around in the collection over time.
      */
-    function _ownerOf(uint256 tokenId) internal view returns (TokenData memory) {
+    function _ownerOf(uint256 tokenId)
+        internal
+        view
+        returns (TokenData memory)
+    {
         uint256 curr = tokenId;
 
         unchecked {
@@ -327,11 +332,20 @@ contract ERC721RAUpgradable is
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
         if (!_exists(tokenId)) revert QueryTokenNotExist();
 
         string memory baseURI = _baseURI();
-        return bytes(baseURI).length != 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
+        return
+            bytes(baseURI).length != 0
+                ? string(abi.encodePacked(baseURI, tokenId.toString()))
+                : "";
     }
 
     /**
@@ -360,7 +374,12 @@ contract ERC721RAUpgradable is
     /**
      * @dev See {IERC721-getApproved}.
      */
-    function getApproved(uint256 tokenId) public view override returns (address) {
+    function getApproved(uint256 tokenId)
+        public
+        view
+        override
+        returns (address)
+    {
         if (!_exists(tokenId)) revert QueryTokenNotExist();
 
         return _tokenApprovals[tokenId];
@@ -369,7 +388,11 @@ contract ERC721RAUpgradable is
     /**
      * @dev See {IERC721-setApprovalForAll}.
      */
-    function setApprovalForAll(address operator, bool approved) public virtual override {
+    function setApprovalForAll(address operator, bool approved)
+        public
+        virtual
+        override
+    {
         if (operator == _msgSender()) revert ApproveToCaller();
 
         _operatorApprovals[_msgSender()][operator] = approved;
@@ -379,7 +402,13 @@ contract ERC721RAUpgradable is
     /**
      * @dev See {IERC721-isApprovedForAll}.
      */
-    function isApprovedForAll(address owner, address operator) public view virtual override returns (bool) {
+    function isApprovedForAll(address owner, address operator)
+        public
+        view
+        virtual
+        override
+        returns (bool)
+    {
         return _operatorApprovals[owner][operator];
     }
 
@@ -415,7 +444,10 @@ contract ERC721RAUpgradable is
         bytes memory _data
     ) public virtual override {
         _transfer(from, to, tokenId);
-        if (to.isContract() && !_checkContractOnERC721Received(from, to, tokenId, _data)) {
+        if (
+            to.isContract() &&
+            !_checkContractOnERC721Received(from, to, tokenId, _data)
+        ) {
             revert TransferToNonERC721ReceiverImplementer();
         }
     }
@@ -428,7 +460,10 @@ contract ERC721RAUpgradable is
      * Tokens start existing when they are minted (`_mint`),
      */
     function _exists(uint256 tokenId) internal view returns (bool) {
-        return _startTokenId() <= tokenId && tokenId < _currentIndex && !_tokenData[tokenId].burned;
+        return
+            _startTokenId() <= tokenId &&
+            tokenId < _currentIndex &&
+            !_tokenData[tokenId].burned;
     }
 
     /**
@@ -483,7 +518,14 @@ contract ERC721RAUpgradable is
             if (to.isContract()) {
                 do {
                     emit Transfer(address(0), to, updatedIndex);
-                    if (!_checkContractOnERC721Received(address(0), to, updatedIndex++, _data)) {
+                    if (
+                        !_checkContractOnERC721Received(
+                            address(0),
+                            to,
+                            updatedIndex++,
+                            _data
+                        )
+                    ) {
                         revert TransferToNonERC721ReceiverImplementer();
                     }
                 } while (updatedIndex != end);
@@ -563,7 +605,8 @@ contract ERC721RAUpgradable is
     ) private {
         TokenData memory prevTokenData = _ownerOf(tokenId);
 
-        if (prevTokenData.ownerAddress != from) revert TransferFromIncorrectOwner();
+        if (prevTokenData.ownerAddress != from)
+            revert TransferFromIncorrectOwner();
 
         bool isApprovedOrOwner = (_msgSender() == from ||
             isApprovedForAll(from, _msgSender()) ||
@@ -712,10 +755,17 @@ contract ERC721RAUpgradable is
         uint256 tokenId,
         bytes memory _data
     ) private returns (bool) {
-        try IERC721ReceiverUpgradeable(to).onERC721Received(_msgSender(), from, tokenId, _data) returns (
-            bytes4 retval
-        ) {
-            return retval == IERC721ReceiverUpgradeable(to).onERC721Received.selector;
+        try
+            IERC721ReceiverUpgradeable(to).onERC721Received(
+                _msgSender(),
+                from,
+                tokenId,
+                _data
+            )
+        returns (bytes4 retval) {
+            return
+                retval ==
+                IERC721ReceiverUpgradeable(to).onERC721Received.selector;
         } catch (bytes memory reason) {
             if (reason.length == 0) {
                 revert TransferToNonERC721ReceiverImplementer();
@@ -837,8 +887,7 @@ contract ERC721RAUpgradable is
         // safeTransferFrom updates price and startTimestamp of new owner
         safeTransferFrom(_msgSender(), _returnAddress, tokenId);
 
-        (bool success, ) = to.call{value: refundAmount}("");
-        if (!success) revert RefundNotSucceed();
+        AddressUpgradeable.sendValue(payable(to), refundAmount);
 
         emit Transfer(_msgSender(), _returnAddress, tokenId);
         _afterTokenTransfers(_msgSender(), _returnAddress, tokenId, 1);
@@ -854,8 +903,8 @@ contract ERC721RAUpgradable is
         uint256 contractBalance = address(this).balance;
         if (contractBalance == 0) revert WithdrawZeroBalance();
 
-        (bool success, ) = to.call{value: contractBalance}("");
+        AddressUpgradeable.sendValue(payable(to), contractBalance);
 
-        if (!success) revert WithdrawNotSucceed();
+        emit WithdrawSucceed(to, contractBalance);
     }
 }
