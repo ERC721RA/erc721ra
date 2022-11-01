@@ -10,11 +10,10 @@
  *
  * SPDX-License-Identifier: MIT
  * Creator: Rari Labs
- * Author: WIL ZEE
+ * Author: Will Qian
  * Version: ERC721RA Smart Contracts v1.0
  *
  * Website: erc721ra.org
- * Twitter: twitter.com/ERC721RA
  * Github: github.com/ERC721RA
  *
  * ERC721RA is an improved implementation of ERC721A with refundability and gas optimization.
